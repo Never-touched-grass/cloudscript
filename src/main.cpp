@@ -8,30 +8,34 @@ int main() {
   vector<string> vecNames;
   vector<vector<any>> vecs;
   unordered_map<string, vector<string>> functions;
+  unordered_map<string, vector<string>> functionArgs;
   string line;
 
   while (getline(cin, line)) {
     lines.push_back(line);
   }
-  cin.ignore();
+  cin.clear();
+  cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
   vector<string> newLines;
   for (size_t i = 0; i < lines.size(); ++i) {
     if (lines[i].starts_with("fnc ")) {
       string name = trim(lines[i].substr(4));
       functions[name] = {};
+      functionArgs[name] = {};
+
       size_t j = i + 1;
+
       if (j < lines.size() && lines[j].starts_with("args ")) {
         vector<string> args = split(trim(lines[j].substr(5)), ' ');
-        for (const string& arg : args) {
-          varNames.push_back(arg);
-          varVals.push_back(0);
-        }
+        functionArgs[name] = args;
         ++j;
       }
+
       while (j < lines.size() && trim(lines[j]) != "end") {
         functions[name].push_back(lines[j]);
         ++j;
       }
+
       i = j;
     } else {
       newLines.push_back(lines[i]);
@@ -39,7 +43,8 @@ int main() {
   }
 
   lines = newLines;
-  for (int i = 0; i < lines.size(); i++) {
+  int i = 0;
+  while (i < lines.size()) {
     string ln = lines[i];
 
     if (ln.starts_with("print ")) {
@@ -169,6 +174,7 @@ int main() {
           varVals.push_back(val);
         } else if (val.starts_with("readfile ")) {
           string filename = val.substr(9);
+          filename = interpolate(filename, varNames, varVals);
           ifstream file(filename);
           if (!file) {
             setColor(12);
@@ -396,8 +402,25 @@ int main() {
       for (int j = 0; j < varNames.size(); j++) {
         if (name == varNames[j]) {
           found = true;
-          string val;
-          getline(cin, val);
+          std::string val;
+
+#ifdef _WIN32
+          FILE* console = fopen("CON", "r");
+          if (console) {
+            char buffer[1024];
+            if (fgets(buffer, sizeof(buffer), console)) {
+              val = std::string(buffer);
+              val.erase(val.find_last_not_of("\r\n") + 1);
+            }
+            fclose(console);
+          }
+#else
+          std::ifstream tty("/dev/tty");
+          if (tty.is_open()) {
+            std::getline(tty, val);
+          }
+#endif
+
           if (val.empty()) {
             cerr << "Input for variable '" << name << "' was empty.\n";
           } else if (is_expr(val.c_str()) != 0) {
@@ -405,6 +428,7 @@ int main() {
           } else {
             varVals[j] = val;
           }
+          break;
         }
       }
       if (!found) {
@@ -476,8 +500,19 @@ int main() {
       }
 
       string varName = cond[0];
-      string rangeStr = cond[2];
-
+      string rangeStr;
+      if (cond.size() == 3) {
+        rangeStr = cond[2];
+      }
+      if (cond.size() == 4 && cond[2] == "vecsize") {
+        string name = trim(cond[3]);
+        for (int j = 0; j < vecNames.size(); j++) {
+          if (vecNames[j] == name) {
+            rangeStr = to_string(vecs[j].size());
+            break;
+          }
+        }
+      }
       int rangeLimit = 0;
       try {
         rangeLimit = stoi(rangeStr);
@@ -594,13 +629,8 @@ int main() {
         continue;
       }
       vector<string> body = functions[name];
-      vector<string> args;
       size_t start = 0;
-
-      if (!body.empty() && body[0].starts_with("args ")) {
-        args = split(trim(body[0].substr(5)), ' ');
-        start = 1;
-      }
+      vector<string> args = functionArgs[name];
       if (argVals.size() != args.size()) {
         setColor(12);
         cout << "ERROR: Function '" << name << "' expects " << args.size()
@@ -621,6 +651,15 @@ int main() {
       lines.erase(lines.begin() + i);
       lines.insert(lines.begin() + i, body.begin() + start, body.end());
       i--;
+    } else {
+      if (ln != "end") {
+        vector<string> prs = split(ln, ' ');
+        setColor(12);
+        cout << "ERROR: " << prs[0] << " is not defined.\n";
+        setColor(7);
+        i++;
+      }
     }
+    i++;
   }
 }

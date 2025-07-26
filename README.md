@@ -20,7 +20,7 @@ CloudScript does 3 things to run its code:
 3. As you can see, there is also a utils.hpp for functions that are not needed to be stored in the main file.
 
 # Examples
-the `println` statement can be used like this:
+This is all the latest features:
 ```
 // Comments like this are ignored
 /*

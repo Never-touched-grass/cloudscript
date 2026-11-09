@@ -1,6 +1,8 @@
 # MAJOR REWRITE UPCOMING!
-CloudScript 2.0 will reimplement and improve the interpreter. It will likely be written in either Rust or C++.
-## SYNTAX CLEANUP AS WELL
+CloudScript 2.0 will **reimplement** and improve the interpreter. It will likely be written in either Rust or C++.
+
+**SYNTAX CLEANUP AS WELL**
+
 Coming soon!
 # CloudScript
 Contents:

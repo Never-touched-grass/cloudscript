@@ -1,4 +1,4 @@
-##MAJOR REWRITE UPCOMING!
+#MAJOR REWRITE UPCOMING!
 CloudScript 2.0 will reimplement and improve the interpreter. Coming soon!
 # CloudScript
 Contents:

@@ -1,5 +1,7 @@
 # MAJOR REWRITE UPCOMING!
-CloudScript 2.0 will reimplement and improve the interpreter. Coming soon!
+CloudScript 2.0 will reimplement and improve the interpreter. It will likely be written in either Rust or C++.
+
+Coming soon!
 # CloudScript
 Contents:
 1. How to use
